@@ -1,15 +1,14 @@
-package air.kanna.spider.novel.syosetu.impl;
+package air.kanna.spider.novel.spider.impl;
 
 import air.kanna.spider.novel.spider.SourceDataGetter;
 import air.kanna.spider.novel.spider.SourceParser;
 import air.kanna.spider.novel.spider.NovelSpider;
 
-public abstract class BaseSyosetuNovelSpider implements NovelSpider {
+public abstract class BaseNovelSpider implements NovelSpider {
 	protected SourceDataGetter srcGetter;
 	protected SourceParser srcParser;
 	
 	protected String novelId;
-	
 	
 	protected String check() {
 		if(srcGetter == null){
@@ -24,6 +23,11 @@ public abstract class BaseSyosetuNovelSpider implements NovelSpider {
 		}
 
 		return null;
+	}
+	
+	@Override
+	public String getCharset() {
+	    return "UTF-8";
 	}
 
 	public SourceDataGetter getSrcGetter() {

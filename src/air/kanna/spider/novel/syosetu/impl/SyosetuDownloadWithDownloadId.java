@@ -1,4 +1,4 @@
-package air.kanna.spider.novel.syosetu.download.impl;
+package air.kanna.spider.novel.syosetu.impl;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -9,13 +9,10 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
+import air.kanna.spider.novel.download.impl.BaseSyosetuNovelDownloader;
+import air.kanna.spider.novel.model.Novel;
 import air.kanna.spider.novel.model.NovelChapter;
 import air.kanna.spider.novel.model.NovelSection;
-import air.kanna.spider.novel.model.Novel;
-import air.kanna.spider.novel.spider.ProcessListener;
-import air.kanna.spider.novel.spider.SourceDataGetter;
-import air.kanna.spider.novel.spider.NovelSpider;
-import air.kanna.spider.novel.syosetu.download.BaseSyosetuNovelDownloader;
 import air.kanna.spider.novel.util.Entry;
 import air.kanna.spider.novel.util.StringUtil;
 import air.kanna.spider.novel.util.Timer;
@@ -30,8 +27,8 @@ public class SyosetuDownloadWithDownloadId
 	private static final char[] FORBIDDEN = {'\\', '/', ':', '*', '?', '\"', '<', '>', '|'};
 	
 	@Override
-	public String download(SourceDataGetter getter, Novel novel, File path, int model, int maxLength){
-		checkParams(getter, novel, path, model, maxLength);
+	public String download(Novel novel, File path, int model, int maxLength){
+		checkParams(novel, path, model, maxLength);
 
 		isStop = false;
 		StringBuilder sb = new StringBuilder();
@@ -39,16 +36,16 @@ public class SyosetuDownloadWithDownloadId
 		logger.info("Start Download " + novel.getNovelTitle());
 		
 		if(model == MODEL_LENGTH){
-			getNovelStringByLength(getter, novel, path, maxLength, sb);
+			getNovelStringByLength(novel, path, maxLength, sb);
 		}else
 		if(novel.getNovelContent().size() == 1
 				&& novel.getNovelContent().get(0)
 					.getChapterTitle().equalsIgnoreCase(
-							NovelSpider.DEFAULT_CHAPTER_TITLE)){
+							NovelChapter.DEFAULT_CHAPTER_TITLE)){
 			logger.warn("SyosetuNovel download is switch to MODEL_LENGTH");
-			getNovelStringByLength(getter, novel, path, maxLength, sb);
+			getNovelStringByLength(novel, path, maxLength, sb);
 		}else{
-			getNovelStringByChapter(getter, novel, path, sb);
+			getNovelStringByChapter(novel, path, sb);
 		}
 		
 		if(sb.length() <= 0){
@@ -62,7 +59,6 @@ public class SyosetuDownloadWithDownloadId
 	}
 	
 	private List<Entry> getNovelStringByChapter(
-			SourceDataGetter getter, 
 			Novel novel, 
 			File file, 
 			StringBuilder faild){
@@ -92,14 +88,14 @@ public class SyosetuDownloadWithDownloadId
 					process.next(section.getSectionTitle());
 				}
 				
-				String contString = getSectionString(getter, novel, section);
+				String contString = getSectionString(novel, section);
 				if(contString == null || contString.length() <= 0){
 					throw new NullPointerException("Cannot get Section: " + chapter.getChapterContent().get(k).getSectionTitle());
 				}
 				content.append(contString);
-				content.append(NovelSpider.ENTER)
-					.append(NovelSpider.ENTER)
-					.append(NovelSpider.ENTER);
+				content.append(StringUtil.ENTER)
+					.append(StringUtil.ENTER)
+					.append(StringUtil.ENTER);
 			}
 			
 			entry.value = content.toString();
@@ -109,7 +105,7 @@ public class SyosetuDownloadWithDownloadId
 				saveEntryToFile(dir + clearForbiddenCharacter(entry.key), entry);
 			}catch(Exception e){
 				faild.append("Cannot save Entry: ").append(entry.key)
-					.append(NovelSpider.ENTER);
+					.append(StringUtil.ENTER);
 				logger.error("Cannot save Entry: " + entry.key);
 			}
 		}
@@ -118,7 +114,6 @@ public class SyosetuDownloadWithDownloadId
 	}
 	
 	private List<Entry> getNovelStringByLength(
-			SourceDataGetter getter, 
 			Novel novel, 
 			File file, 
 			int maxLength,
@@ -150,14 +145,14 @@ public class SyosetuDownloadWithDownloadId
 				if(process != null){
 					process.next(section.getSectionTitle());
 				}
-				String contString = getSectionString(getter, novel, section);
+				String contString = getSectionString(novel, section);
 				if(contString == null || contString.length() <= 0){
 					throw new NullPointerException("Cannot get Section: " + chapter.getChapterContent().get(k).getSectionTitle());
 				}
 				content.append(contString);
-				content.append(NovelSpider.ENTER)
-					.append(NovelSpider.ENTER)
-					.append(NovelSpider.ENTER);
+				content.append(StringUtil.ENTER)
+					.append(StringUtil.ENTER)
+					.append(StringUtil.ENTER);
 				
 				if(content.length() >= maxLength){
 					
@@ -169,7 +164,7 @@ public class SyosetuDownloadWithDownloadId
 						saveEntryToFile(dir + clearForbiddenCharacter(entry.key), entry);
 					}catch(Exception e){
 					    faildDesc.append("Cannot save Entry: ").append(entry.key)
-							.append(NovelSpider.ENTER);
+							.append(StringUtil.ENTER);
 						logger.error("Cannot save Entry: " + entry.key);
 					}
 					
@@ -189,7 +184,7 @@ public class SyosetuDownloadWithDownloadId
 				saveEntryToFile(dir + entry.key, entry);
 			}catch(Exception e){
 			    faildDesc.append("Cannot save Entry: ").append(entry.key)
-					.append(NovelSpider.ENTER);
+					.append(StringUtil.ENTER);
 				logger.error("Cannot save Entry: " + entry.key);
 			}
 		}
@@ -264,7 +259,7 @@ public class SyosetuDownloadWithDownloadId
 		return sb.toString();
 	}
 	
-	protected String getSectionString(SourceDataGetter getter, Novel novel, NovelSection section){
+	protected String getSectionString(Novel novel, NovelSection section){
 		String url = DOWNLOAD_URL
 				.replace("$1", novel.getDownloadId())
 				.replace("$2", section.getSectionNum());
@@ -279,7 +274,7 @@ public class SyosetuDownloadWithDownloadId
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		String result = getter.getSourceData(url, "UTF-8");
+		String result = sourceGetter.getSourceData(url, "UTF-8");
 		
 		return result;
 	}

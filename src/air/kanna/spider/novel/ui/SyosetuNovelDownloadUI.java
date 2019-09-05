@@ -1,4 +1,4 @@
-package air.kanna.spider.novel.syosetu.ui;
+package air.kanna.spider.novel.ui;
 
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -23,18 +23,16 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
+import air.kanna.spider.novel.download.NovelDownloader;
+import air.kanna.spider.novel.factory.NovelSpiderFactory;
+import air.kanna.spider.novel.factory.impl.SyosetuSpiderFactory;
+import air.kanna.spider.novel.model.Novel;
 import air.kanna.spider.novel.model.NovelChapter;
 import air.kanna.spider.novel.model.NovelSection;
-import air.kanna.spider.novel.model.Novel;
 import air.kanna.spider.novel.spider.ProcessListener;
-import air.kanna.spider.novel.spider.SourceDataGetter;
-import air.kanna.spider.novel.spider.impl.HtmlSourceParser;
-import air.kanna.spider.novel.spider.impl.HttpsSourceDataGetter;
-import air.kanna.spider.novel.spider.impl.ProcessBarListenerAdapter;
-import air.kanna.spider.novel.syosetu.download.SyosetuNovelDownloader;
-import air.kanna.spider.novel.syosetu.download.impl.SyosetuDownloadWithDownloadId;
-import air.kanna.spider.novel.syosetu.download.impl.SyosetuDownloadWithHtml;
-import air.kanna.spider.novel.syosetu.impl.NormalSyosetuNovelSpider;
+import air.kanna.spider.novel.spider.impl.BaseNovelSpider;
+import air.kanna.spider.novel.syosetu.impl.SyosetuDownloadWithDownloadId;
+import air.kanna.spider.novel.syosetu.impl.SyosetuDownloadWithHtml;
 import air.kanna.spider.novel.util.Entry;
 import air.kanna.spider.novel.util.StringUtil;
 import air.kanna.spider.novel.util.log.LoggerProvider;
@@ -62,12 +60,11 @@ public class SyosetuNovelDownloadUI extends JFrame {
 	private JFileChooser pathSelect;
 	private JFrame thisFrame;
 	
-	private SyosetuNovelDownloader downloader;
-	private SourceDataGetter sourceGetter;
-	private HtmlSourceParser sourceParser;
-	private NormalSyosetuNovelSpider novelSpider;
 	private ProcessListener process;
+	private NovelSpiderFactory factory;
+	private NovelDownloader downloader;
 	
+	private NovelSpiderFactory[] buffer;
 	private boolean isStop = false;
 	private File lastPath = null;
 	
@@ -98,16 +95,8 @@ public class SyosetuNovelDownloadUI extends JFrame {
 		progressBar.setVisible(false);
 	}
 	private void initDownload(){
-		downloader = new SyosetuDownloadWithDownloadId();
-		sourceGetter = new HttpsSourceDataGetter();
-		sourceParser = new HtmlSourceParser();
-		novelSpider = new NormalSyosetuNovelSpider();
 		process = new ProcessBarListenerAdapter(progressBar, messageLb);
-		
-		novelSpider.setSrcGetter(sourceGetter);
-		novelSpider.setSrcParser(sourceParser);
-		
-		downloader.setProcess(process);
+		buffer = new NovelSpiderFactory[] {null, null};
 	}
 	
 	private boolean checkInput(){
@@ -234,8 +223,11 @@ public class SyosetuNovelDownloadUI extends JFrame {
 					setNormal();
 					return;
 				}
-				((NormalSyosetuNovelSpider)novelSpider)
-					.setNovelId(getNovelIdFromURL(urlTf.getText()));
+				factory = getNovelSpiderFactory(urlTf.getText());
+				
+				BaseNovelSpider novelSpider = (BaseNovelSpider)factory.getSpider(urlTf.getText());
+				
+				novelSpider.setNovelId(getNovelIdFromURL(urlTf.getText()));
 				
 				new Thread(){
 					@Override
@@ -246,7 +238,7 @@ public class SyosetuNovelDownloadUI extends JFrame {
 						List<Novel> list = null;
 						
 						try{
-						    list = novelSpider.getSyosetuNovel();
+						    list = novelSpider.getNovel();
 						
     						if(list == null || list.size() <= 0){
     							process.finish("没有找到该小说");
@@ -271,9 +263,10 @@ public class SyosetuNovelDownloadUI extends JFrame {
 						process.setPosition(1, "开始下载小说：" + novel.getNovelTitle());
 						
 						try{
-						    downloader = getDownloader(novel);
+						    downloader = factory.getDownloader(novel);
+						    downloader.setProcess(process);
+						    downloader.setStop(false);
 							String msg = downloader.download(
-									sourceGetter, 
 									novel, 
 									new File(savePathTf.getText()),
 									sepTypeCb.getSelectedIndex() == 1 ? SyosetuDownloadWithDownloadId.MODEL_LENGTH : SyosetuDownloadWithDownloadId.MODEL_CHAPTER,
@@ -360,20 +353,19 @@ public class SyosetuNovelDownloadUI extends JFrame {
 		entry = new Entry();
 		entry.key = "V1.0.2";
 		entry.value = "日志处理优化";
+		
+		entry = new Entry();
+        entry.key = "V1.0.3";
+        entry.value = "支持不通过下载TXT，直接从网页抓取";
+        
 		versions.add(entry);
 	}
 	
-	private SyosetuNovelDownloader getDownloader(Novel novel) {
-	    SyosetuNovelDownloader downloader = null;
-	    
-	    if(StringUtil.isNotSpace(novel.getDownloadId())) {
-	        downloader = new SyosetuDownloadWithDownloadId();
-	    }else {
-	        downloader = new SyosetuDownloadWithHtml();
+	private NovelSpiderFactory getNovelSpiderFactory(String url) {
+	    if(buffer[0] == null) {
+	        buffer[0] = new SyosetuSpiderFactory();
 	    }
-	    
-	    downloader.setProcess(process);
-	    return downloader;
+	    return buffer[0];
 	}
 	
 	/**

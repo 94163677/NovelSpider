@@ -10,19 +10,26 @@ import org.jsoup.select.Elements;
 import air.kanna.spider.novel.exception.NovelParseException;
 import air.kanna.spider.novel.model.NovelChapter;
 import air.kanna.spider.novel.model.NovelSection;
+import air.kanna.spider.novel.spider.impl.BaseNovelSpider;
 import air.kanna.spider.novel.model.Novel;
 import air.kanna.spider.novel.util.StringUtil;
 import air.kanna.spider.novel.util.log.Logger;
 import air.kanna.spider.novel.util.log.LoggerProvider;
 
-public class NormalSyosetuNovelSpider extends BaseSyosetuNovelSpider {
-	private static final Logger logger = LoggerProvider.getLogger(NormalSyosetuNovelSpider.class);
+public class SyosetuNovelSpider extends BaseNovelSpider {
+	private static final Logger logger = LoggerProvider.getLogger(SyosetuNovelSpider.class);
+	private static final String MAIN_URL = "https://ncode.syosetu.com/$1";
 	
 	private String url = null;
 	private String source = null;
 	
 	@Override
-	public List<Novel> getSyosetuNovel() throws NovelParseException{
+	public String getMainUrl() {
+	    return MAIN_URL;
+	}
+	
+	@Override
+	public List<Novel> getNovel() throws NovelParseException{
 		String checked = check();
 		List<Novel> result = new ArrayList<Novel>();
 		
@@ -82,7 +89,7 @@ public class NormalSyosetuNovelSpider extends BaseSyosetuNovelSpider {
 		if(!hasChapter){
 			current = new NovelChapter();
 			current.setChapterIndex(1);
-			current.setChapterTitle(DEFAULT_CHAPTER_TITLE);
+			current.setChapterTitle(NovelChapter.DEFAULT_CHAPTER_TITLE);
 		}
 		for(Element item : list){
 			if(item == null){
@@ -257,11 +264,11 @@ public class NormalSyosetuNovelSpider extends BaseSyosetuNovelSpider {
 	}
 
 	private Document getDocument()throws NovelParseException{
-		String url = MAIN_URL.replace("$1", novelId);
+		String url = getMainUrl().replace("$1", novelId);
 		this.url = url;
 		logger.info("Novel URL is: " + url);
 		
-		String source = srcGetter.getSourceData(url, CHARSET);
+		String source = srcGetter.getSourceData(url, getCharset());
 		if(source == null || source.length() <= 0){
 			throw new NovelParseException("Cannot get Source form url: " + url, url, null);
 		}

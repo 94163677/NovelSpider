@@ -8,7 +8,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 
 import air.kanna.spider.novel.spider.SourceDataGetter;
-import air.kanna.spider.novel.spider.NovelSpider;
+import air.kanna.spider.novel.util.StringUtil;
 import air.kanna.spider.novel.util.Timer;
 import air.kanna.spider.novel.util.log.Logger;
 import air.kanna.spider.novel.util.log.LoggerProvider;
@@ -53,7 +53,7 @@ public class HttpsSourceDataGetter implements SourceDataGetter {
     			BufferedReader read = new BufferedReader(new InputStreamReader(conn.getInputStream(), charset));
     			
     			for(String temp = read.readLine(); temp != null; temp = read.readLine()){
-    				result.append(temp).append(NovelSpider.ENTER);
+    				result.append(temp).append(StringUtil.ENTER);
     			}
     			
     			return result.toString();

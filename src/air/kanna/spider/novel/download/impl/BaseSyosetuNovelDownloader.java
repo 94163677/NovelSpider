@@ -1,20 +1,22 @@
-package air.kanna.spider.novel.syosetu.download;
+package air.kanna.spider.novel.download.impl;
 
 import java.io.File;
 
 import air.kanna.spider.novel.model.NovelChapter;
+import air.kanna.spider.novel.download.NovelDownloader;
 import air.kanna.spider.novel.model.Novel;
 import air.kanna.spider.novel.spider.ProcessListener;
 import air.kanna.spider.novel.spider.SourceDataGetter;
 import air.kanna.spider.novel.util.StringUtil;
 
-public abstract class BaseSyosetuNovelDownloader implements SyosetuNovelDownloader {
+public abstract class BaseSyosetuNovelDownloader implements NovelDownloader {
 
     protected ProcessListener process = null;
     protected boolean isStop = false;
+    protected SourceDataGetter sourceGetter = null;
     
-    protected void checkParams(SourceDataGetter getter, Novel novel, File path, int model, int maxLength){
-        if(getter == null){
+    protected void checkParams(Novel novel, File path, int model, int maxLength){
+        if(sourceGetter == null){
             throw new NullPointerException("SourceDataGetter is null");
         }
         if(novel == null 
@@ -66,6 +68,13 @@ public abstract class BaseSyosetuNovelDownloader implements SyosetuNovelDownload
         }
         
         return title.toString();
+    }
+    
+    @Override
+    public void setSourceGetter(SourceDataGetter sourceGetter) {
+        if(sourceGetter != null) {
+            this.sourceGetter = sourceGetter;
+        }
     }
     
     public ProcessListener getProcess() {

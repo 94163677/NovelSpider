@@ -1,4 +1,4 @@
-package air.kanna.spider.novel.syosetu.download.impl;
+package air.kanna.spider.novel.syosetu.impl;
 
 import java.io.File;
 
@@ -8,11 +8,11 @@ import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
-import air.kanna.spider.novel.model.NovelSection;
 import air.kanna.spider.novel.model.Novel;
-import air.kanna.spider.novel.spider.SourceDataGetter;
+import air.kanna.spider.novel.model.NovelSection;
 import air.kanna.spider.novel.spider.SourceParser;
 import air.kanna.spider.novel.spider.impl.HtmlSourceParser;
+import air.kanna.spider.novel.util.StringUtil;
 import air.kanna.spider.novel.util.Timer;
 import air.kanna.spider.novel.util.log.Logger;
 import air.kanna.spider.novel.util.log.LoggerProvider;
@@ -29,7 +29,7 @@ public class SyosetuDownloadWithHtml extends SyosetuDownloadWithDownloadId {
     }
     
     @Override
-    protected String getSectionString(SourceDataGetter getter, Novel novel, NovelSection section){
+    protected String getSectionString(Novel novel, NovelSection section){
         String url = DOWNLOAD_URL
                 .replace("$1", novel.getNovelId())
                 .replace("$2", section.getSectionNum());
@@ -45,7 +45,7 @@ public class SyosetuDownloadWithHtml extends SyosetuDownloadWithDownloadId {
             e.printStackTrace();
         }
         
-        String result = getSectionStringFromHtml(getter.getSourceData(url, "UTF-8"));
+        String result = getSectionStringFromHtml(sourceGetter.getSourceData(url, "UTF-8"));
         if(result == null) {
             sb.insert(0, "Error ");
             logger.error(sb.toString());
@@ -55,9 +55,9 @@ public class SyosetuDownloadWithHtml extends SyosetuDownloadWithDownloadId {
     }
     
     @Override
-    protected void checkParams(SourceDataGetter getter, Novel novel, File path, int model, int maxLength){
+    protected void checkParams(Novel novel, File path, int model, int maxLength){
         try {
-            super.checkParams(getter, novel, path, model, maxLength);
+            super.checkParams(novel, path, model, maxLength);
         }catch(IllegalArgumentException ie) {
             if(!ie.getMessage().contains("downloadId")) {
                 throw ie;
@@ -75,14 +75,17 @@ public class SyosetuDownloadWithHtml extends SyosetuDownloadWithDownloadId {
         Elements title = document.getElementsByClass("novel_subtitle");
         Elements sourceElem = document.select("#novel_honbun");
         
-        source.append("\r\n").append(title.get(0).text()).append("\r\n\r\n");
+        source.append(StringUtil.ENTER)
+            .append(title.get(0).text())
+            .append(StringUtil.ENTER)
+            .append(StringUtil.ENTER);
 
         for(Node node : sourceElem.get(0).childNodes()){
             if(!(node instanceof Element)) {
                 continue;
             }
             source.append(getStringFromElement((Element)node));
-            source.append("\r\n");
+            source.append(StringUtil.ENTER);
         }
         
         return source.toString();
@@ -96,7 +99,7 @@ public class SyosetuDownloadWithHtml extends SyosetuDownloadWithDownloadId {
     
     private void getStringFromElement(Element element, StringBuilder sb) {
         if("br".equalsIgnoreCase(element.tagName())) {
-            sb.append("\r\n");
+            sb.append(StringUtil.ENTER);
             return;
         }
         for(Node node : element.childNodes()){

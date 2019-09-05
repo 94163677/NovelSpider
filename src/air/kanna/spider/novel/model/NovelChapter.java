@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NovelChapter {
-	
+    public static final String DEFAULT_CHAPTER_TITLE = "DEFAULT TITLE";
+    
 	private String chapterTitle;
 	private int chapterIndex;
 	private List<NovelSection> chapterContent;

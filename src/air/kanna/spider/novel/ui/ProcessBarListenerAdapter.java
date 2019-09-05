@@ -1,4 +1,4 @@
-package air.kanna.spider.novel.spider.impl;
+package air.kanna.spider.novel.ui;
 
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
