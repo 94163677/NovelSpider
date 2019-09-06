@@ -8,51 +8,30 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import air.kanna.spider.novel.exception.NovelParseException;
+import air.kanna.spider.novel.model.Novel;
 import air.kanna.spider.novel.model.NovelChapter;
 import air.kanna.spider.novel.model.NovelSection;
-import air.kanna.spider.novel.spider.impl.BaseNovelSpider;
-import air.kanna.spider.novel.model.Novel;
+import air.kanna.spider.novel.spider.impl.BaseHtmlNovelSpider;
 import air.kanna.spider.novel.util.StringUtil;
 import air.kanna.spider.novel.util.log.Logger;
 import air.kanna.spider.novel.util.log.LoggerProvider;
 
-public class SyosetuNovelSpider extends BaseNovelSpider {
+public class SyosetuNovelSpider extends BaseHtmlNovelSpider {
 	private static final Logger logger = LoggerProvider.getLogger(SyosetuNovelSpider.class);
-	private static final String MAIN_URL = "https://ncode.syosetu.com/$1";
-	
-	private String url = null;
-	private String source = null;
+	private static final String MAIN_URL = "https://ncode.syosetu.com";
 	
 	@Override
 	public String getMainUrl() {
-	    return MAIN_URL;
+	    return MAIN_URL + "/$1";
 	}
 	
 	@Override
-	public List<Novel> getNovel() throws NovelParseException{
-		String checked = check();
-		List<Novel> result = new ArrayList<Novel>();
-		
-		if(checked != null){
-			throw new NovelParseException("Check error: " + checked);
-		}
-		
-		Document html = getDocument();
-		if(html == null){
-			throw new NovelParseException("Cannot Parse Source", url, source);
-		}
-		
-		Novel novel = getSyosetuNovel(html);
-		if(novel != null){
-			result.add(novel);
-		}
-		
-		logger.info("Parse Novel Information success: " + novel.toString());
-		
-		return result;
-	}
+    public String getBaseUrl() {
+        return MAIN_URL;
+    }
 	
-	private Novel getSyosetuNovel(Document html)throws NovelParseException{
+	@Override
+	protected Novel getOneNovel(Document html)throws NovelParseException{
 		Novel novel = new Novel();
 
 		novel.setNovelId(novelId);
@@ -234,51 +213,4 @@ public class SyosetuNovelSpider extends BaseNovelSpider {
 			return url.substring(idx + 1);
 		}
 	}
-	
-	private String getStringFromElements(Elements list, String title) throws NovelParseException{
-		return getStringFromElements(list, 0, title);
-	}
-	
-	private String getStringFromElements(Elements list, int idx, String title) throws NovelParseException{
-		if(list == null){
-			throw new NovelParseException(("Cannot get Novel " + title + " Element"), url, source);
-		}
-		if(idx < 0 || idx >= list.size()){
-			throw new IndexOutOfBoundsException("Elements index error: " + idx + ", Max is: " + list.size());
-		}
-		
-		return getStringFromElements(list.get(idx), title);
-	}
-	
-	private String getStringFromElements(Element element, String title) throws NovelParseException{
-		if(element == null){
-			throw new NovelParseException(("Cannot get Novel " + title + " String"), url, source);
-		}
-		
-		String elementStr = element.text();
-		if(elementStr == null || elementStr.length() <= 0){
-			throw new NovelParseException(("Cannot get Novel " + title + " String"), url, source);
-		}
-		
-		return StringUtil.trim(elementStr);
-	}
-
-	private Document getDocument()throws NovelParseException{
-		String url = getMainUrl().replace("$1", novelId);
-		this.url = url;
-		logger.info("Novel URL is: " + url);
-		
-		String source = srcGetter.getSourceData(url, getCharset());
-		if(source == null || source.length() <= 0){
-			throw new NovelParseException("Cannot get Source form url: " + url, url, null);
-		}
-		
-		logger.info("Get Source Success");
-		this.source = source;
-		Document doc = (Document)srcParser.parseSourceData(source);
-		logger.info("Parse Source Success");
-		
-		return doc;
-	}
-
 }

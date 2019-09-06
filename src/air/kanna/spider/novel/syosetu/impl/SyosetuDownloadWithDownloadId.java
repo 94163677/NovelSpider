@@ -9,7 +9,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
-import air.kanna.spider.novel.download.impl.BaseSyosetuNovelDownloader;
+import air.kanna.spider.novel.download.impl.BaseNovelDownloader;
 import air.kanna.spider.novel.model.Novel;
 import air.kanna.spider.novel.model.NovelChapter;
 import air.kanna.spider.novel.model.NovelSection;
@@ -20,7 +20,7 @@ import air.kanna.spider.novel.util.log.Logger;
 import air.kanna.spider.novel.util.log.LoggerProvider;
 
 public class SyosetuDownloadWithDownloadId 
-        extends BaseSyosetuNovelDownloader{
+        extends BaseNovelDownloader{
 	private static final Logger logger = LoggerProvider.getLogger(SyosetuDownloadWithDownloadId.class);
 
 	private static final String DOWNLOAD_URL = "https://ncode.syosetu.com/txtdownload/dlstart/ncode/$1/?no=$2&hankaku=0&code=utf-8&kaigyo=crlf";

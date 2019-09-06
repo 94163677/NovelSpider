@@ -30,9 +30,8 @@ import air.kanna.spider.novel.model.Novel;
 import air.kanna.spider.novel.model.NovelChapter;
 import air.kanna.spider.novel.model.NovelSection;
 import air.kanna.spider.novel.spider.ProcessListener;
-import air.kanna.spider.novel.spider.impl.BaseNovelSpider;
+import air.kanna.spider.novel.spider.impl.BaseHtmlNovelSpider;
 import air.kanna.spider.novel.syosetu.impl.SyosetuDownloadWithDownloadId;
-import air.kanna.spider.novel.syosetu.impl.SyosetuDownloadWithHtml;
 import air.kanna.spider.novel.util.Entry;
 import air.kanna.spider.novel.util.StringUtil;
 import air.kanna.spider.novel.util.log.LoggerProvider;
@@ -225,9 +224,15 @@ public class SyosetuNovelDownloadUI extends JFrame {
 				}
 				factory = getNovelSpiderFactory(urlTf.getText());
 				
-				BaseNovelSpider novelSpider = (BaseNovelSpider)factory.getSpider(urlTf.getText());
+				BaseHtmlNovelSpider novelSpider = (BaseHtmlNovelSpider)factory.getSpider(urlTf.getText());
+				String novelId = novelSpider.getNovelIdFromUrl(urlTf.getText());
+				if(StringUtil.isNull(novelId)) {
+				    JOptionPane.showMessageDialog(thisFrame, "从URL解析小说ID失败。", "错误", JOptionPane.ERROR_MESSAGE);
+				    setNormal();
+				    return;
+				}
 				
-				novelSpider.setNovelId(getNovelIdFromURL(urlTf.getText()));
+				novelSpider.setNovelId(novelId);
 				
 				new Thread(){
 					@Override

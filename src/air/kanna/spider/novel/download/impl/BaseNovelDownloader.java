@@ -9,7 +9,7 @@ import air.kanna.spider.novel.spider.ProcessListener;
 import air.kanna.spider.novel.spider.SourceDataGetter;
 import air.kanna.spider.novel.util.StringUtil;
 
-public abstract class BaseSyosetuNovelDownloader implements NovelDownloader {
+public abstract class BaseNovelDownloader implements NovelDownloader {
 
     protected ProcessListener process = null;
     protected boolean isStop = false;
