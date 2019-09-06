@@ -20,7 +20,7 @@ public abstract class BaseHtmlNovelSpider extends BaseNovelSpider {
     protected String source = null;
     
     protected abstract Novel getOneNovel(Document html)throws NovelParseException;
-    public abstract String getBaseUrl();
+    public abstract String getMainUrl();
     
     @Override
     public List<Novel> getNovel() throws NovelParseException{

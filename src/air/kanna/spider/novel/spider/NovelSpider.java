@@ -7,6 +7,6 @@ import air.kanna.spider.novel.model.Novel;
 
 public interface NovelSpider {
 	String getCharset();
-	String getMainUrl();
+	String getBaseUrl();
 	List<Novel> getNovel()throws NovelParseException;
 }

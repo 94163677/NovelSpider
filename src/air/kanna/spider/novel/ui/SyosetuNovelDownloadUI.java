@@ -25,6 +25,7 @@ import javax.swing.border.EmptyBorder;
 
 import air.kanna.spider.novel.download.NovelDownloader;
 import air.kanna.spider.novel.factory.NovelSpiderFactory;
+import air.kanna.spider.novel.factory.impl.KakuyomuSpiderFactory;
 import air.kanna.spider.novel.factory.impl.SyosetuSpiderFactory;
 import air.kanna.spider.novel.model.Novel;
 import air.kanna.spider.novel.model.NovelChapter;
@@ -133,7 +134,7 @@ public class SyosetuNovelDownloadUI extends JFrame {
 		
 		LoggerProvider.resetLoggerFactory(new Log4jLoggerFactory());
 		
-		setTitle("小説家になろう — 小说下载器 " + versions.get(versions.size() - 1).key);
+		setTitle("小说下载器 " + versions.get(versions.size() - 1).key);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 240);
 		contentPane = new JPanel();
@@ -223,6 +224,11 @@ public class SyosetuNovelDownloadUI extends JFrame {
 					return;
 				}
 				factory = getNovelSpiderFactory(urlTf.getText());
+				if(factory == null) {
+				    JOptionPane.showMessageDialog(thisFrame, "不支持从输入的URL下载小说。", "错误", JOptionPane.ERROR_MESSAGE);
+                    setNormal();
+                    return;
+				}
 				
 				BaseHtmlNovelSpider novelSpider = (BaseHtmlNovelSpider)factory.getSpider(urlTf.getText());
 				String novelId = novelSpider.getNovelIdFromUrl(urlTf.getText());
@@ -298,22 +304,6 @@ public class SyosetuNovelDownloadUI extends JFrame {
 					}
 				}.start();
 			}
-			
-			private String getNovelIdFromURL(String url){
-				if(url.startsWith("https")){
-					int idx = url.lastIndexOf('/', url.length() - 2);
-					if(idx >= 0){
-						if(url.endsWith("/")){
-							return url.substring(idx + 1, url.length() - 1);
-						}else{
-							return url.substring(idx + 1);
-						}
-					}else{
-						return url;
-					}
-				}
-				return url;
-			}
 		});
 		startDownBtn.setBounds(10, 159, 118, 23);
 		contentPane.add(startDownBtn);
@@ -363,6 +353,10 @@ public class SyosetuNovelDownloadUI extends JFrame {
         entry.key = "V1.0.3";
         entry.value = "支持不通过下载TXT，直接从网页抓取";
         
+        entry = new Entry();
+        entry.key = "V2.0.0";
+        entry.value = "新增支持“カクヨム”网站的小说下载";
+        
 		versions.add(entry);
 	}
 	
@@ -370,7 +364,24 @@ public class SyosetuNovelDownloadUI extends JFrame {
 	    if(buffer[0] == null) {
 	        buffer[0] = new SyosetuSpiderFactory();
 	    }
-	    return buffer[0];
+	    if(buffer[1] == null) {
+            buffer[1] = new KakuyomuSpiderFactory();
+        }
+	    if(StringUtil.isNull(url)) {
+	        return null;
+	    }
+	    
+	    String baseUrl = null;
+	    url = url.toLowerCase();
+	    
+	    for(int idx=0; idx<buffer.length; idx++) {
+	        baseUrl = buffer[idx].getSpider(url).getBaseUrl().toLowerCase();
+	        if(url.contains(baseUrl)) {
+	            return buffer[idx];
+	        }
+	    }
+	    
+	    return null;
 	}
 	
 	/**

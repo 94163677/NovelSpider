@@ -1,8 +1,7 @@
-package air.kanna.spider.novel.syosetu.impl;
+package air.kanna.spider.novel.kakuyomu.impl;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 
 import air.kanna.spider.novel.download.impl.BaseHtmlNovelDownloader;
@@ -16,15 +15,15 @@ import air.kanna.spider.novel.util.Timer;
 import air.kanna.spider.novel.util.log.Logger;
 import air.kanna.spider.novel.util.log.LoggerProvider;
 
-public class SyosetuDownloadWithHtml 
+public class KakuyomuDownloadWithHtml 
         extends BaseHtmlNovelDownloader {
-    private static final Logger logger = LoggerProvider.getLogger(SyosetuDownloadWithHtml.class);
+    private static final Logger logger = LoggerProvider.getLogger(KakuyomuDownloadWithHtml.class);
     
-    private static final String DOWNLOAD_URL = "https://ncode.syosetu.com/$1/$2/";
+    private static final String DOWNLOAD_URL = "https://kakuyomu.jp/works/$1/episodes/$2";
     
     private SourceParser parser = null;
     
-    public SyosetuDownloadWithHtml() {
+    public KakuyomuDownloadWithHtml() {
         parser = new HtmlSourceParser();
     }
     
@@ -61,18 +60,15 @@ public class SyosetuDownloadWithHtml
         }
         
         StringBuilder source = new StringBuilder();
-        Elements title = document.getElementsByClass("novel_subtitle");
-        Elements sourceElem = document.select("#novel_honbun");
+        Elements title = document.getElementsByClass("widget-episodeTitle");
+        Elements sourceElem = document.select(".widget-episodeBody p");
         
         source.append(StringUtil.ENTER)
             .append(title.first().text())
             .append(StringUtil.ENTER)
             .append(StringUtil.ENTER);
 
-        for(Node node : sourceElem.get(0).childNodes()){
-            if(!(node instanceof Element)) {
-                continue;
-            }
+        for(Element node : sourceElem){
             source.append(ElementUtil.getStringFromElement((Element)node));
             source.append(StringUtil.ENTER);
         }

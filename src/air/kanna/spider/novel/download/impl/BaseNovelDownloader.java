@@ -27,9 +27,6 @@ public abstract class BaseNovelDownloader implements NovelDownloader {
         if(StringUtil.isNull(novel.getNovelTitle())){
             throw new IllegalArgumentException("SyosetuNovel's name is null");
         }
-        if(StringUtil.isNull(novel.getDownloadId())) {
-            throw new IllegalArgumentException("SyosetuNovel's downloadId is null");
-        }
         
         if(path == null){
             throw new NullPointerException("Output Path is null");
